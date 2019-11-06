@@ -57,6 +57,7 @@ void generate_timestamp(char ** time_stamp) {
 void read_key_from_file(char *person1, char *person2, unsigned char ** key) {
     FILE *file;
     unsigned char * temp_key = malloc(KEY_SIZE);
+
     // generate file path, store in path
     char * path = NULL;
     generate_path(person1, person2, &path);
@@ -65,41 +66,45 @@ void read_key_from_file(char *person1, char *person2, unsigned char ** key) {
     file = fopen(path, "rb");
     if(file == NULL) printf("%s\n", path);
     fread(temp_key, KEY_SIZE, 1, file);
-    // free resource
-    fclose(file);
-    free(path);
+
     // update key
     if(*key != NULL) free(*key);
     *key = temp_key;
+
+    // free resource
+    fclose(file);
+    free(path);
 }
 
 /*
- * this function convert string str to long tin
+ * this function convert string str to long int
  */
 long int convert_string_to_int(char *str) {
     return strtol(str, NULL, 10);
 }
 
 /*
- *  this function take a decrypted message, name of 2 principals and pointer to key AB Kab.
- *  it will validate the decrypted message by gradually parsing different elements of the message including:
+ *  this function take a decrypted session message, name of 2 principals and pointer to key AB Kab.
+ *  it will first remove the padding. (session_message has fixed length)
+ *  it will validate the decrypted session message by gradually parsing different elements of the message including:
  *      - principal1's name, principal2's name, time_stamp (readable time stamp and number of time), Key ab
  *      - it will store Key ab into Kab
  *  if nothing is wrong, the function will return 0.
  */
-int verify_decrypted_message(char *decrypted_message, char *principal1, char *principal2, unsigned char ** Kab) {
+int verify_decrypted_session_message(char *decrypted_session_message, char *principal1, char *principal2, unsigned char ** Kab) {
     // check if decrypted_message is NULL
-    if (decrypted_message == NULL) {
+    if (decrypted_session_message == NULL) {
         exit(FAIL_DECRYPT);
     }
 
     // recover information in decrypted_message
     unsigned char buffer[SESSION_MESSAGE_LEN + 1];
-    memcpy(buffer, decrypted_message, (SESSION_MESSAGE_LEN + 1) * sizeof(unsigned char));
+    memcpy(buffer, decrypted_session_message, (SESSION_MESSAGE_LEN + 1) * sizeof(unsigned char));
     buffer[SESSION_MESSAGE_LEN] ='\0';
 
-    // parse the padding
+    // parse the padding but dont do anything with it.
     char *token = strtok((char *)buffer, SESSION_MESSAGE_DELIMITER);
+
     // parse name of principal 1 & validate
     token = strtok(NULL, SESSION_MESSAGE_DELIMITER);
     if (token == NULL) {
@@ -125,14 +130,14 @@ int verify_decrypted_message(char *decrypted_message, char *principal1, char *pr
     }
     // validate time_stamp
     unsigned long request_time = (unsigned long) convert_string_to_int(token);
-    // generate current_time_stamp
+    // generate current_time_stamp and validate request_time with current_time
     char * current_time_stamp = NULL;
     generate_timestamp(&current_time_stamp);
     unsigned long current_time = (unsigned long) convert_string_to_int(current_time_stamp);
-
     if (current_time < request_time || (current_time - request_time) >= ONE_DAY) {
         exit(TIME_STAMP_INVALID);
     }
+
     // read KeyAB by reading the last 32 bytes of decrypted message.
     if(*Kab != NULL) free(*Kab);
     *Kab = malloc(KEY_SIZE);
@@ -142,6 +147,14 @@ int verify_decrypted_message(char *decrypted_message, char *principal1, char *pr
     return  SUCCESSFUL;
 }
 
+/*
+ * This function takes name of the principal, and trusted party. Then it generated a common key for these two.
+ * the key will be stored in two file, one in principal's folder and one in trusted party's folder.
+ *
+ * for example principal's name is alice, trusted party with name sam, then the key will be stored in 2 files:
+ *  ./alice/sam.key (in principal's folder)
+ *  ./sam/alice.key (in trusted party's folder)
+ */
 void generated_trusted_key(char * principal, char * trusted_third_party) {
     unsigned char key[crypto_secretbox_KEYBYTES];
     crypto_secretbox_keygen(key);
@@ -165,7 +178,10 @@ void generated_trusted_key(char * principal, char * trusted_third_party) {
     free(trusted_key_path);
 }
 
-void padding_message(char ** message) {
+/*
+ * the session message need to have fixed length. We will fill the
+ */
+void padding_session_message(char ** message) {
     unsigned long mess_length = strlen(*message);
     assert(mess_length < SESSION_MESSAGE_LEN);
 

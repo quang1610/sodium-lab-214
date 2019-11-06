@@ -1,2 +1,2 @@
-# sodium-lab-214
+# sodium-lab-CSC214
 Experiment with sodium library
