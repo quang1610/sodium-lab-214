@@ -179,7 +179,7 @@ void generated_trusted_key(char * principal, char * trusted_third_party) {
 }
 
 /*
- * the session message need to have fixed length. We will fill the
+ * the session message need to have fixed length. We will fill 0 to the front of the message
  */
 void padding_session_message(char ** message) {
     unsigned long mess_length = strlen(*message);

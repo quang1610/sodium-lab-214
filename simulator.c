@@ -28,13 +28,13 @@ int main() {
     unsigned char * session_message = NULL;
     session_key_request((unsigned char *)principal1, (unsigned char *)principal2, &session_message);
     // trusted provide encrypted session information:
-    unsigned char * encrypted_message_AS = NULL;
-    unsigned char * encrypted_message_BS = NULL;
-    provide_session_key(session_message, &encrypted_message_AS, &encrypted_message_BS);
+    unsigned char * encrypted_session_message_AS = NULL;
+    unsigned char * encrypted_session_message_BS = NULL;
+    provide_session_key(session_message, &encrypted_session_message_AS, &encrypted_session_message_BS);
 
     // Alice verify encrypted_message_AS and get Kab
     unsigned char * Kab = NULL;
-    int result = verify_session_key_message(encrypted_message_AS, encrypted_message_BS, principal1, principal2, &Kab);
+    int result = verify_session_key_message(encrypted_session_message_AS, encrypted_session_message_BS, principal1, principal2, &Kab);
 
     // Alice use Kab to encrypted her message
     unsigned char * encrypted_message_M = NULL;
@@ -42,7 +42,15 @@ int main() {
 
     // Bob decrypt the message:
     unsigned char * decrypted_message_M = NULL;
-    receive_and_decrypt_message(encrypted_message_BS, encrypted_message_M, &decrypted_message_M);
+    receive_and_decrypt_message(encrypted_session_message_BS, encrypted_message_M, &decrypted_message_M);
 
     printf("%s\n", decrypted_message_M);
+
+    free(session_message);
+    free(encrypted_session_message_AS);
+    free(encrypted_session_message_BS);
+    free(Kab);
+    free(encrypted_message_M);
+    free(decrypted_message_M);
+    return SUCCESSFUL;
 }

@@ -32,7 +32,7 @@ void generate_path(char *person1, char *person2, char ** path);
 void generate_timestamp(char ** time_stamp);
 void read_key_from_file(char *person1, char *person2, unsigned char ** key); // read key store in file ./person1/person2.key
 long int convert_string_to_int(char *str);
-int verify_decrypted_message(char *decrypted_message, char *principal1, char *principal2, unsigned char ** Kab);
+int verify_decrypted_session_message(char *decrypted_message, char *principal1, char *principal2, unsigned char ** Kab);
 void generated_trusted_key(char * principal, char * trusted_third_party);
-void padding_message(char ** message);
+void padding_session_message(char ** message);
 #endif //CSC214_UTILITY_H
