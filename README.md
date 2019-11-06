@@ -19,3 +19,8 @@ notice that the session message has fixed length = SESSION_MESSAGE_LEN defined i
 
   layout of timestamp is: YYYYMMDDHHMinMinSS
   
+
+to compile: I use: gcc simulator.c principal.c trusted.c utility.c -o simulator -lsodium
+
+to run: ./simulator
+  
