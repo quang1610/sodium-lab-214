@@ -1,6 +1,10 @@
 # sodium-lab-CSC214
 Experiment with sodium library
 
+to compile: I use: gcc simulator.c principal.c trusted.c utility.c -o simulator -lsodium
+
+to run: ./simulator
+
 Some comment on the layout of message:
 
 1. Session message:
@@ -19,8 +23,4 @@ notice that the session message has fixed length = SESSION_MESSAGE_LEN defined i
 
   layout of timestamp is: YYYYMMDDHHMinMinSS
   
-
-to compile: I use: gcc simulator.c principal.c trusted.c utility.c -o simulator -lsodium
-
-to run: ./simulator
   
